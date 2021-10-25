@@ -1,6 +1,7 @@
+import 'package:firebase_auth_login/data/join_or_login.dart';
 import 'package:firebase_auth_login/helper/login_background.dart';
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
 import '../id_pass_validation.dart';
 
 class AuthPage extends StatelessWidget {
@@ -18,7 +19,7 @@ class AuthPage extends StatelessWidget {
       children: <Widget>[
         CustomPaint(
           size: size,
-          painter: LoginBackground(),
+          painter: LoginBackground(isJoin: Provider.of<JoinOrLogin>(context).isJoin),
         ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -29,7 +30,16 @@ class AuthPage extends StatelessWidget {
             Container(
               height: size.height * 0.10,
             ),
-            Text("Don't Have an Account? Create One"),
+            Consumer<JoinOrLogin>(
+              builder: (context, joinOrLogin, child) =>
+                  GestureDetector(
+                      onTap: (){
+                        joinOrLogin.toggle();
+                      },
+                      child: Text(joinOrLogin.isJoin? "Already Have an Account? Sign in" : "Don't Have an Account? Create One",
+                        style: TextStyle(color: joinOrLogin.isJoin? Colors.red : Colors.blue),)
+                  ),
+            ),
             Container(
               height: size.height * 0.05,
             )

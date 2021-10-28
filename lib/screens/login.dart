@@ -1,8 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_login/data/join_or_login.dart';
 import 'package:firebase_auth_login/helper/login_background.dart';
+import 'package:firebase_auth_login/screens/forget_pw.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'main_page.dart';
 import '../id_pass_validation.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class AuthPage extends StatelessWidget {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -49,6 +53,34 @@ class AuthPage extends StatelessWidget {
     ));
   }
 
+  void _register(BuildContext context) async {
+    final UserCredential result = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text, password: _passwordController.text
+    );
+    final User? user = result.user;
+
+    if(user == null){
+      final snackBar = SnackBar(content: Text('Please try again later.'),);
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+
+    // Navigator.push(context, MaterialPageRoute(builder: (context) => MainPage(user.email)));
+  }
+
+  void _login(BuildContext context) async {
+    final UserCredential result = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text, password: _passwordController.text
+    );
+    final User? user = result.user;
+
+    if(user == null){
+      final snackBar = SnackBar(content: Text('Please try again later.'),);
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+
+    // Navigator.push(context, MaterialPageRoute(builder: (context) => MainPage(user.email)));
+  }
+
   Widget _logoImage(Size size) {
     return Expanded(
       child: Padding(
@@ -56,7 +88,8 @@ class AuthPage extends StatelessWidget {
         child: FittedBox(
           fit: BoxFit.contain,
           child: CircleAvatar(
-              backgroundImage: NetworkImage("https://picsum.photos/250")),
+              // backgroundImage: NetworkImage("https://picsum.photos/250")),
+              backgroundImage: AssetImage('assets/hug.gif')),
         ),
       ),
     );
@@ -69,20 +102,24 @@ class AuthPage extends StatelessWidget {
       bottom: 0,
       child: SizedBox(
         height: 45,
-        child: ElevatedButton(
-          onPressed: () {
-            if(_formKey.currentState!.validate()){
-              print(_emailController.text.toString());
-            }
-          },
-          style: ButtonStyle(
-              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              ),
-              textStyle: MaterialStateProperty.all(
-                  TextStyle(fontSize: 20, color: Colors.white)),
-              backgroundColor: MaterialStateProperty.all(Colors.blue)),
-          child: Text("Login"),
+        child: Consumer<JoinOrLogin>(
+          builder: (context, joinOrLogin, child) => ElevatedButton(
+            onPressed: () {
+              if(_formKey.currentState!.validate()){
+                // print(_emailController.text.toString());
+                joinOrLogin.isJoin? _register(context) : _login(context);
+              }
+            },
+            style: ButtonStyle(
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                ),
+                textStyle: MaterialStateProperty.all(
+                    TextStyle(fontSize: 20, color: Colors.white)),
+                backgroundColor: MaterialStateProperty.all(joinOrLogin.isJoin? Colors.red : Colors.blue),
+            ),
+            child: Text(joinOrLogin.isJoin? "Join" : "Login"),
+          ),
         ),
       ),
     );
@@ -110,7 +147,7 @@ class AuthPage extends StatelessWidget {
                     ),
                     validator: (value) {
                       if (isEmailValid(value!)) {
-                        return "Please inpour correct Email.";
+                        return "Please input correct Email.";
                       }
                       return null;
                     },
@@ -124,7 +161,7 @@ class AuthPage extends StatelessWidget {
                     ),
                     validator: (value) {
                       if (isPasswordValid(value!)) {
-                        return "Please inpour correct Password.";
+                        return "Please input correct Password.";
                       }
                       return null;
                     },
@@ -132,11 +169,23 @@ class AuthPage extends StatelessWidget {
                   Container(
                     height: 8,
                   ),
-                  Text("Forgot Password"),
+                  Consumer<JoinOrLogin>(
+                    builder: (context, value, child) => Opacity(
+                      opacity: value.isJoin? 0 : 1,
+                        child: GestureDetector(onTap: (){
+                          value.isJoin? null : goToForgetPw(context);
+                        },
+                        child: Text("Forgot Password"))
+                    ),
+                  ),
                 ],
               )),
         ),
       ),
     );
   }
+  void goToForgetPw(BuildContext context){
+    Navigator.push(context, MaterialPageRoute(builder: (context)=>ForgetPw()));
+  }
+
 }

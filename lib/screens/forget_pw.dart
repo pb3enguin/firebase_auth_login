@@ -30,7 +30,7 @@ class _ForgetPwState extends State<ForgetPw> {
               decoration: const InputDecoration(
                 icon: Icon(Icons.account_circle),
                 labelText: "Email",
-            -  ),
+              ),
               validator: (value) {
                 if (isEmailValid(value!)) {
                   return "Please input correct Email.";
